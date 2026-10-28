@@ -1,0 +1,14 @@
+{
+  "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    { "type": "TextBlock", "text": "Project Atlas", "size": "Large", "weight": "Bolder", "wrap": true },
+    { "type": "TextBlock", "text": "Ready for review. Synthetic demonstration data.", "wrap": true },
+    { "type": "Container", "style": "good", "items": [{ "type": "TextBlock", "text": "PASSED: Example unit tests", "wrap": true }] },
+    { "type": "Container", "style": "warning", "items": [{ "type": "TextBlock", "text": "UNVERIFIED: Example Windows sign-in", "wrap": true }] },
+    { "type": "Container", "selectAction": { "type": "Action.ToggleVisibility", "targetElements": ["details"] }, "items": [{ "type": "TextBlock", "text": "Show or hide details", "color": "Accent", "wrap": true }] },
+    { "type": "Container", "id": "details", "isVisible": false, "items": [{ "type": "TextBlock", "text": "Preview first. Send only after reviewing the content and destination.", "wrap": true }] }
+  ],
+  "actions": [{ "type": "Action.OpenUrl", "title": "Example review", "url": "https://example.com/review" }]
+}

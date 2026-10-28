@@ -1,0 +1,18 @@
+# Project Atlas: release review
+Demo data for the README.
+
+[badge:green]CHECKS PASSED[/] [badge:blue]REVIEW REQUESTED[/]
+
+*The release candidate is ready for a first review.*
+The preview shows the message before anything reaches the channel.
+
+| Check | Demo result |
+| --- | --- |
+| Unit tests | [green]124 / 124 passed[/] |
+| Typecheck | [green]Passed[/] |
+| Desktop review | [orange]Pending[/] |
+
+> [hl:yellow]Scope: these are example results, not a real release.[/]
+
+*Next step:* review the changes and reply with questions.
+[Open example review](https://example.com/review/42)

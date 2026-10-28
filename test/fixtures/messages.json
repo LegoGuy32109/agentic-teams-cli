@@ -1,0 +1,92 @@
+{
+  "messages": [
+    {
+      "id": "1791990000000",
+      "messagetype": "ThreadActivity/TopicTopicUpdated",
+      "contenttype": "Text",
+      "content": "{\"oldValue\":\"a\",\"newValue\":\"b\"}",
+      "conversationid": "19:dev@thread.tacv2",
+      "composetime": "2026-10-14T15:00:00.0000000Z",
+      "properties": {}
+    },
+    {
+      "id": "1791988884000",
+      "messagetype": "RichText/Html",
+      "contenttype": "Text",
+      "content": "<p><readonly class=\"skipProofing\" itemtype=\"http://schema.skype.com/Mention\" spellcheck=\"false\"><span itemtype=\"http://schema.skype.com/Mention\" itemscope itemid=\"0\">Test User</span></readonly>we</p>",
+      "imdisplayname": "Alex Doe",
+      "from": "https://teams.cloud.microsoft/api/chatsvc/amer/v1/users/ME/contacts/8:orgid:33333333-3333-3333-3333-333333333333",
+      "composetime": "2026-10-14T14:41:24.0000000Z",
+      "originalarrivaltime": "2026-10-14T14:41:24.0000000Z",
+      "conversationid": "19:dev@thread.tacv2",
+      "clientmessageid": "2",
+      "properties": {
+        "mentions": "[{\"@type\":\"http://schema.skype.com/Mention\",\"itemid\":\"0\",\"mri\":\"8:orgid:11111111-1111-1111-1111-111111111111\",\"mentionType\":\"person\",\"displayName\":\"Test User\"}]",
+        "cards": "[]",
+        "links": "[]",
+        "files": "[]",
+        "formatVariant": "TEAMS"
+      }
+    },
+    {
+      "id": "1791988883194",
+      "messagetype": "RichText/Html",
+      "contenttype": "Text",
+      "content": "<p>hello there</p>",
+      "imdisplayname": "Test User",
+      "from": "https://teams.cloud.microsoft/api/chatsvc/amer/v1/users/ME/contacts/8:orgid:11111111-1111-1111-1111-111111111111",
+      "composetime": "2026-10-14T14:41:23.1940000Z",
+      "originalarrivaltime": "2026-10-14T14:41:23.1940000Z",
+      "conversationid": "19:dev@thread.tacv2",
+      "clientmessageid": "1",
+      "properties": { "mentions": "[]", "cards": "[]", "links": "[]", "files": "[]", "formatVariant": "TEAMS" }
+    },
+    {
+      "id": "1791988886500",
+      "messagetype": "RichText/Html",
+      "contenttype": "Text",
+      "content": "",
+      "imdisplayname": "Test User",
+      "from": "https://teams.cloud.microsoft/api/chatsvc/amer/v1/users/ME/contacts/8:orgid:11111111-1111-1111-1111-111111111111",
+      "composetime": "2026-10-14T14:41:26.5000000Z",
+      "conversationid": "19:dev@thread.tacv2",
+      "properties": { "deletetime": 1791988887000, "mentions": "[]", "files": "[]", "cards": "[]" }
+    },
+    {
+      "id": "1791988885000",
+      "messagetype": "RichText/Html",
+      "contenttype": "Text",
+      "content": "<p>edited text</p>",
+      "imdisplayname": "Test User",
+      "from": "https://teams.cloud.microsoft/api/chatsvc/amer/v1/users/ME/contacts/8:orgid:11111111-1111-1111-1111-111111111111",
+      "composetime": "2026-10-14T14:41:25.0000000Z",
+      "conversationid": "19:dev@thread.tacv2",
+      "properties": { "edittime": 1791988886000, "mentions": "[]", "files": "[]", "cards": "[]" }
+    },
+    {
+      "id": "1791988888000",
+      "messagetype": "Event/Call",
+      "contenttype": "Text",
+      "content": "<partlist alt =\"\"></partlist>",
+      "conversationid": "19:dev@thread.tacv2",
+      "properties": {}
+    },
+    {
+      "id": "1791988889000",
+      "messagetype": "RichText/Html",
+      "contenttype": "Text",
+      "content": "<blockquote itemscope=\"\" itemtype=\"http://schema.skype.com/Reply\" class=\"quote\"><p>first line</p><p>second line</p></blockquote><p>Reply &amp; <a href=\"https://example.test/x\">https://example.test/x</a><img src=\"x.png\"></p>",
+      "imdisplayname": "Alex Doe",
+      "from": "https://teams.cloud.microsoft/api/chatsvc/amer/v1/users/ME/contacts/8:orgid:33333333-3333-3333-3333-333333333333",
+      "composetime": "2026-10-14T14:41:29.0000000Z",
+      "conversationid": "19:dev@thread.tacv2",
+      "properties": { "mentions": "[]", "cards": "[]", "files": "[]" }
+    }
+  ],
+  "tenantId": "22222222-2222-2222-2222-222222222222",
+  "_metadata": {
+    "lastCompleteSegmentStartTime": "1",
+    "lastCompleteSegmentEndTime": "1791990000000",
+    "syncState": "https://teams.cloud.microsoft/api/chatsvc/amer/v1/users/ME/conversations/19:dev@thread.tacv2/messages?startTime=1"
+  }
+}

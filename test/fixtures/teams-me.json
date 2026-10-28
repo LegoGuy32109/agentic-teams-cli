@@ -1,0 +1,35 @@
+{
+  "teams": [
+    {
+      "id": "19:team@thread.tacv2",
+      "displayName": "Engineering",
+      "channels": [
+        { "id": "19:dev@thread.tacv2", "displayName": "Developers" },
+        { "id": "19:general@thread.tacv2", "displayName": "General" }
+      ]
+    }
+  ],
+  "chats": [
+    {
+      "id": "19:chat1@thread.v2",
+      "title": "Stand-Up",
+      "threadType": "meeting",
+      "isOneOnOne": false,
+      "members": [{ "mri": "8:orgid:11111111-1111-1111-1111-111111111111" }],
+      "isRead": true
+    },
+    {
+      "id": "19:one@unq.gbl.spaces",
+      "title": "",
+      "threadType": "chat",
+      "isOneOnOne": true,
+      "members": [
+        { "mri": "8:orgid:11111111-1111-1111-1111-111111111111" },
+        { "mri": "8:orgid:33333333-3333-3333-3333-333333333333" }
+      ],
+      "isRead": false
+    }
+  ],
+  "users": [],
+  "metadata": {}
+}

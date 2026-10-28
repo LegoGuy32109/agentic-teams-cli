@@ -1,0 +1,9 @@
+{
+  "title": "Project Atlas: release progress",
+  "subtitle": "Demo data · Weekly engineering update",
+  "items": [
+    { "name": "API and unit tests", "owner": "Alex · Ready for review", "percent": 100, "status": { "text": "Complete", "style": "Good" } },
+    { "name": "Desktop experience", "owner": "Sam · Final visual checks", "percent": 75, "status": { "text": "In review", "style": "Accent" } },
+    { "name": "Rollout checklist", "owner": "Jordan · Waiting on a review slot", "percent": 40, "status": { "text": "Needs attention", "style": "Warning" } }
+  ]
+}

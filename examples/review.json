@@ -1,0 +1,18 @@
+{
+  "title": "Project Atlas: review requested",
+  "subtitle": "Demo data · PR #42 · Preserve the message preview",
+  "adds": 182,
+  "dels": 24,
+  "files": 4,
+  "checks": [
+    "The preview shows the destination and formatted message",
+    "Posting requires an explicit --allow-write"
+  ],
+  "notTested": ["Desktop rendering still needs a visual check"],
+  "ask": "Review the preview behavior and reply with questions.",
+  "links": {
+    "pr": "https://example.com/review/42",
+    "diff": "https://example.com/review/42/files",
+    "pipeline": "https://example.com/builds/42"
+  }
+}

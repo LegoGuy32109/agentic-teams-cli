@@ -1,0 +1,16 @@
+# Preview before you post
+Demo commands for the README.
+
+[badge:purple]TERMINAL → TEAMS[/]
+
+*Inspect the draft first:*
+```bash
+teams-cli send me "Ready for review" --format=rich
+```
+
+*Send after reviewing the content and destination:*
+```bash
+teams-cli send me "Ready for review" --format=rich --allow-write
+```
+
+[blue]A coding agent can read the same command schema:[/] `teams-cli help --json`

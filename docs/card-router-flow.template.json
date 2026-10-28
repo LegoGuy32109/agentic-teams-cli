@@ -1,0 +1,382 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "$authentication": {
+      "defaultValue": {},
+      "type": "SecureObject"
+    },
+    "$connections": {
+      "defaultValue": {},
+      "type": "Object"
+    },
+    "teams.chat": {
+      "defaultValue": "",
+      "type": "String"
+    }
+  },
+  "triggers": {
+    "manual": {
+      "metadata": {},
+      "type": "Request",
+      "kind": "TeamsWebhook",
+      "inputs": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "attachments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "contentType": {
+                    "contentType": {
+                      "type": "string"
+                    }
+                  },
+                  "content": {
+                    "content": {
+                      "type": "object",
+                      "properties": {
+                        "$schema": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        },
+                        "body": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "contentType",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "triggerAuthenticationType": "All"
+      }
+    }
+  },
+  "actions": {
+    "Init_allow": {
+      "runAfter": {},
+      "type": "InitializeVariable",
+      "inputs": {
+        "variables": [
+          {
+            "name": "allow",
+            "type": "object",
+            "value": "{{ALLOWLIST: object of channelId -> team groupId}}"
+          }
+        ]
+      }
+    },
+    "Route": {
+      "runAfter": {
+        "Init_allow": [
+          "Succeeded"
+        ]
+      },
+      "cases": {
+        "draft": {
+          "case": "draft",
+          "actions": {
+            "Post_draft_to_Josh": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "poster": "Flow bot",
+                  "location": "Chat with Flow bot",
+                  "body/recipient": "{{USER_UPN}}",
+                  "body/messageBody": "@triggerBody()?['attachments']?[0]?['content']"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                  "connectionName": "shared_teams",
+                  "operationId": "PostCardToConversation"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          }
+        },
+        "post": {
+          "case": "post",
+          "actions": {
+            "Check_post": {
+              "actions": {
+                "Post_card_in_channel": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "poster": "User",
+                      "location": "Channel",
+                      "body/recipient/groupId": "@variables('allow')?[triggerBody()?['target']?['channel']]",
+                      "body/recipient/channelId": "@triggerBody()?['target']?['channel']",
+                      "body/messageBody": "@triggerBody()?['attachments']?[0]?['content']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                      "connectionName": "shared_teams",
+                      "operationId": "PostCardToConversation"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Refuse_channel_post": {
+                    "type": "Terminate",
+                    "inputs": {
+                      "runStatus": "Failed",
+                      "runError": {
+                        "code": "ChannelNotAllowed",
+                        "message": "@{concat('Channel not on the allowlist: ', coalesce(triggerBody()?['target']?['channel'],''))}"
+                      }
+                    }
+                  }
+                }
+              },
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@contains(variables('allow'), triggerBody()?['target']?['channel'])",
+                      true
+                    ]
+                  }
+                ]
+              },
+              "type": "If"
+            }
+          }
+        },
+        "reply": {
+          "case": "reply",
+          "actions": {
+            "Check_reply": {
+              "actions": {
+                "Reply_card_in_thread": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "poster": "User",
+                      "location": "Channel",
+                      "body/recipient/groupId": "@variables('allow')?[triggerBody()?['target']?['channel']]",
+                      "body/recipient/channelId": "@triggerBody()?['target']?['channel']",
+                      "body/parentMessageId": "@triggerBody()?['target']?['replyTo']",
+                      "body/messageBody": "@triggerBody()?['attachments']?[0]?['content']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                      "connectionName": "shared_teams",
+                      "operationId": "ReplyWithCardToConversation"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Refuse_channel_reply": {
+                    "type": "Terminate",
+                    "inputs": {
+                      "runStatus": "Failed",
+                      "runError": {
+                        "code": "ChannelNotAllowed",
+                        "message": "@{concat('Channel not on the allowlist: ', coalesce(triggerBody()?['target']?['channel'],''))}"
+                      }
+                    }
+                  }
+                }
+              },
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@contains(variables('allow'), triggerBody()?['target']?['channel'])",
+                      true
+                    ]
+                  }
+                ]
+              },
+              "type": "If"
+            }
+          }
+        },
+        "update": {
+          "case": "update",
+          "actions": {
+            "Check_update": {
+              "actions": {
+                "Update_card": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "poster": "User",
+                      "location": "Channel",
+                      "body/recipient/groupId": "@variables('allow')?[triggerBody()?['target']?['channel']]",
+                      "body/recipient/channelId": "@triggerBody()?['target']?['channel']",
+                      "body/messageBody": "@triggerBody()?['attachments']?[0]?['content']",
+                      "body/messageId": "@triggerBody()?['target']?['messageId']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                      "connectionName": "shared_teams",
+                      "operationId": "UpdateCardInConversation"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Refuse_channel_update": {
+                    "type": "Terminate",
+                    "inputs": {
+                      "runStatus": "Failed",
+                      "runError": {
+                        "code": "ChannelNotAllowed",
+                        "message": "@{concat('Channel not on the allowlist: ', coalesce(triggerBody()?['target']?['channel'],''))}"
+                      }
+                    }
+                  }
+                }
+              },
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@contains(variables('allow'), triggerBody()?['target']?['channel'])",
+                      true
+                    ]
+                  }
+                ]
+              },
+              "type": "If"
+            }
+          }
+        },
+        "update-draft": {
+          "case": "update-draft",
+          "actions": {
+            "Update_draft": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "poster": "Flow bot",
+                  "location": "Group chat",
+                  "body/recipient": "{{FLOW_BOT_CHAT_ID}}",
+                  "body/messageId": "@triggerBody()?['target']?['messageId']",
+                  "body/messageBody": "@triggerBody()?['attachments']?[0]?['content']"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                  "connectionName": "shared_teams",
+                  "operationId": "UpdateCardInConversation"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          }
+        },
+        "live-demo": {
+          "case": "live-demo",
+          "actions": {
+            "Live_post": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "poster": "Flow bot",
+                  "location": "Chat with Flow bot",
+                  "body/recipient": "{{USER_UPN}}",
+                  "body/messageBody": "@triggerBody()?['attachments']?[0]?['content']"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                  "connectionName": "shared_teams",
+                  "operationId": "PostCardToConversation"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Live_steps": {
+              "foreach": "@skip(triggerBody()?['attachments'], 1)",
+              "actions": {
+                "Live_update": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "poster": "Flow bot",
+                      "location": "Group chat",
+                      "body/recipient": "@body('Live_post')?['conversationId']",
+                      "body/messageId": "@body('Live_post')?['id']",
+                      "body/messageBody": "@item()?['content']"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                      "connectionName": "shared_teams",
+                      "operationId": "UpdateCardInConversation"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Live_post": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              }
+            }
+          }
+        }
+      },
+      "default": {
+        "actions": {
+          "Refuse_mode": {
+            "type": "Terminate",
+            "inputs": {
+              "runStatus": "Failed",
+              "runError": {
+                "code": "UnknownMode",
+                "message": "target.mode must be draft, post, reply, update, update-draft, or live-demo"
+              }
+            }
+          }
+        }
+      },
+      "expression": "@coalesce(triggerBody()?['target']?['mode'], 'draft')",
+      "type": "Switch"
+    }
+  }
+}

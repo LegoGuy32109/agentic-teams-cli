@@ -1,0 +1,203 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "verticalContentAlignment": "Center",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "BranchCompare",
+              "size": "Medium",
+              "color": "Accent"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "stretch",
+          "verticalContentAlignment": "Center",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Project Atlas: review requested",
+              "wrap": true,
+              "size": "Large",
+              "weight": "Bolder"
+            },
+            {
+              "type": "TextBlock",
+              "text": "Demo data · PR #42 · Preserve the message preview",
+              "wrap": true,
+              "isSubtle": true,
+              "spacing": "None",
+              "size": "Small"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "verticalContentAlignment": "Center",
+          "items": [
+            {
+              "type": "Badge",
+              "text": "+182",
+              "style": "Good",
+              "appearance": "Filled"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "verticalContentAlignment": "Center",
+          "spacing": "Small",
+          "items": [
+            {
+              "type": "Badge",
+              "text": "−24",
+              "style": "Attention",
+              "appearance": "Filled"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "auto",
+          "verticalContentAlignment": "Center",
+          "spacing": "Small",
+          "items": [
+            {
+              "type": "Badge",
+              "text": "4 files",
+              "style": "Subtle",
+              "appearance": "Tint"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "spacing": "Medium",
+      "selectAction": {
+        "type": "Action.ToggleVisibility",
+        "targetElements": [
+          "changed-files"
+        ]
+      },
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "▸ Show or hide changed files",
+          "wrap": true,
+          "color": "Accent",
+          "weight": "Bolder"
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "id": "changed-files",
+      "isVisible": false,
+      "style": "emphasis",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "src/preview.ts\nsrc/send.ts\ntest/preview.test.ts\nREADME.md",
+          "fontType": "Monospace",
+          "wrap": true
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "style": "emphasis",
+      "showBorder": true,
+      "roundedCorners": true,
+      "spacing": "Medium",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "What to check",
+          "wrap": true,
+          "weight": "Bolder"
+        },
+        {
+          "type": "TextBlock",
+          "text": "• The preview shows the destination and formatted message",
+          "wrap": true,
+          "spacing": "Small"
+        },
+        {
+          "type": "TextBlock",
+          "text": "• Posting requires an explicit --allow-write",
+          "wrap": true,
+          "spacing": "Small"
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "style": "warning",
+      "showBorder": true,
+      "roundedCorners": true,
+      "spacing": "Medium",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Not tested",
+          "wrap": true,
+          "weight": "Bolder"
+        },
+        {
+          "type": "TextBlock",
+          "text": "Desktop rendering still needs a visual check",
+          "wrap": true,
+          "color": "Warning"
+        }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "Review the preview behavior and reply with questions.",
+      "wrap": true,
+      "spacing": "Medium"
+    },
+    {
+      "type": "ActionSet",
+      "spacing": "Medium",
+      "actions": [
+        {
+          "type": "Action.OpenUrl",
+          "title": "Open PR",
+          "url": "https://example.com/review/42"
+        },
+        {
+          "type": "Action.OpenUrl",
+          "title": "View diff",
+          "url": "https://example.com/review/42/files",
+          "mode": "secondary"
+        },
+        {
+          "type": "Action.OpenUrl",
+          "title": "Open the pipeline run",
+          "url": "https://example.com/builds/42",
+          "mode": "secondary"
+        }
+      ]
+    }
+  ]
+}

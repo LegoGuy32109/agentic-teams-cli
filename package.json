@@ -1,0 +1,27 @@
+{
+  "name": "agentic-teams-cli",
+  "version": "1.0.0",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "build": "bun build --compile --outfile=dist/teams-cli index.ts",
+    "build:all": "bun scripts/build-all.ts",
+    "docs": "bun scripts/docs.ts",
+    "release:check": "bun scripts/release-check.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "description": "Read, search, preview, and send Microsoft Teams messages from the terminal.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LegoGuy32109/agentic-teams-cli.git"
+  }
+}

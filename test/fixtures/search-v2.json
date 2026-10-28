@@ -1,0 +1,35 @@
+{
+  "type": "Microsoft.Teams.MiddleTier.Search.Contracts.Search.SearchResults",
+  "value": [
+    {
+      "displayName": "Alex Doe",
+      "givenName": "Alex",
+      "surname": "Doe",
+      "mail": "adoe@example.test",
+      "userPrincipalName": "adoe@example.test",
+      "alias": "adoe",
+      "objectId": "33333333-3333-3333-3333-333333333333",
+      "mri": "8:orgid:33333333-3333-3333-3333-333333333333",
+      "objectType": "User",
+      "userType": "Member"
+    },
+    {
+      "displayName": "Alex Doerr",
+      "givenName": "Alex",
+      "surname": "Doerr",
+      "mail": "adoerr@example.test",
+      "userPrincipalName": "adoerr@example.test",
+      "alias": "adoerr",
+      "objectId": "44444444-4444-4444-4444-444444444444",
+      "mri": "8:orgid:44444444-4444-4444-4444-444444444444",
+      "objectType": "User",
+      "userType": "Member"
+    },
+    {
+      "displayName": "Guest Entry",
+      "mri": "8:live:guest-example",
+      "objectType": "User",
+      "userType": "Guest"
+    }
+  ]
+}
