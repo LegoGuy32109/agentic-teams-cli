@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "files": {
-    ".github/workflows/ci.yml": "83d29055a59f62686165b18f8760f203d6118c48734b2f8be37cece046d85f7a",
+    ".github/workflows/ci.yml": "c92b74b64a5561dc6dd44ae80e36dff12aa362d4ff2057cfc4c9691ee8820321",
     ".github/workflows/release.yml": "8abcd7c598adc7bb7d31f000e6ed4f4438ec2d81360d36029438f8f37cfa4ed5",
     ".gitignore": "c187bff7ed6a0036edf914e57bebf58196667cb07802c5418ec27398820ecf29",
     "AGENTS.md": "a1aa780966bfba2f860cd8e3efe9b0739da914a9b073b63d7019d5f1addba48a",
@@ -197,5 +197,5 @@
     "test/upload.test.ts": "681ab460d930993230661a12a66d4b800b628a7412c6ebc9e24fac73a42d0a26",
     "tsconfig.json": "1340216c4aad2d22876e6bbe1ac51bcf9024155611a150616fb6477ba4ac70bd"
   },
-  "fingerprint": "3dc3f69d40e25dffd71fdfd9d46eea5a245f522bfc363fb7a90c3091b57d40cd"
+  "fingerprint": "5e8a77a4410f9cb2604c3c01a307a448ef989feb015112c98cbb98c9f9b5fdfb"
 }
