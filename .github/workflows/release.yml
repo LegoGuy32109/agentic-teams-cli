@@ -2,45 +2,58 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build
+        required: true
+        type: string
 permissions:
   contents: read
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.4.4'
       - run: bun install --frozen-lockfile
       - run: bun run release:check
+        env:
+          GITHUB_REF_TYPE: tag
+          GITHUB_REF_NAME: ${{ env.RELEASE_TAG }}
   build:
     needs: test
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            target: bun-linux-x64
+          - target: bun-linux-x64
             artifact: teams-cli-linux-x64
-          - os: macos-15
-            target: bun-darwin-arm64
+          - target: bun-darwin-arm64
             artifact: teams-cli-darwin-arm64
-          - os: macos-15-intel
-            target: bun-darwin-x64
+          - target: bun-darwin-x64
             artifact: teams-cli-darwin-x64
-          - os: windows-latest
-            target: bun-windows-x64
+          - target: bun-windows-x64
             artifact: teams-cli-windows-x64.exe
-    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.4.4'
       - run: bun install --frozen-lockfile
       - run: bun test test/update.test.ts
       - run: bun build --compile --minify --target=${{ matrix.target }} --outfile=dist/${{ matrix.artifact }} index.ts
-      - shell: bash
+      - name: Smoke test Linux release binary
+        if: matrix.target == 'bun-linux-x64'
+        shell: bash
         run: |
           "./dist/${{ matrix.artifact }}" --version
           "./dist/${{ matrix.artifact }}" update --help
@@ -55,6 +68,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -67,6 +82,7 @@ jobs:
           sha256sum teams-cli-* > SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.RELEASE_TAG }}
           files: artifacts/*
           generate_release_notes: true
           fail_on_unmatched_files: true

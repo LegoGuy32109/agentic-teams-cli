@@ -2,7 +2,7 @@
   "schema": 1,
   "files": {
     ".github/workflows/ci.yml": "83d29055a59f62686165b18f8760f203d6118c48734b2f8be37cece046d85f7a",
-    ".github/workflows/release.yml": "0e8a86d9272f392ece29261f886857a922e090586d987613a603ba2eb27b0f1d",
+    ".github/workflows/release.yml": "a510784ead4a54876fc467e98ab9b9e15e7d1b30d62fbb8109b8450f30b42f86",
     ".gitignore": "c187bff7ed6a0036edf914e57bebf58196667cb07802c5418ec27398820ecf29",
     "AGENTS.md": "a1aa780966bfba2f860cd8e3efe9b0739da914a9b073b63d7019d5f1addba48a",
     "bun.lock": "be0f7b3dae71d4d50b81c3fa3526bb1f69733cce62d10a887ab566ef5ed1ecbb",
@@ -15,7 +15,7 @@
     "docs/images/review-card.png": "10ff44db31ce265fcc02b0c9853b4872533f58c74f3e1d708dafe59601dfa33d",
     "docs/images/styled-message.png": "cc27a7365bc55ffead4ebf39b8a2957c175a0958acf818176e102269d2f58851",
     "docs/limits.md": "d6acd834f05b2bffdf55ebb4e8118242fcebcf08e456263a63db104a9a7d3af2",
-    "docs/maintenance.md": "8e87bb7f71f01af7c231a3d71d31930cc3d9c31d36ad30368c73858d44b13e17",
+    "docs/maintenance.md": "d9afe3de901b4e531fbc8f18730b6b305cf1df2586efefb539886595f8092885",
     "docs/showcase.md": "8e2988ed444bd6302d36ba7664a264b3043acc1f3371c2348f67c4071e7cb25e",
     "examples/code-message.txt": "03e167ba7dbebf43f07d24232c4bb41c702ab368b8ca4556be855146e4e86ce2",
     "examples/progress.json": "4aff7b6a5e010e907a1723bd714bea5aeae279158bd55035805c798e74b97907",
@@ -197,5 +197,5 @@
     "test/upload.test.ts": "681ab460d930993230661a12a66d4b800b628a7412c6ebc9e24fac73a42d0a26",
     "tsconfig.json": "1340216c4aad2d22876e6bbe1ac51bcf9024155611a150616fb6477ba4ac70bd"
   },
-  "fingerprint": "62fde99dac678bd005d2c18bbc94d94d1669bfca29471ed91c6e800f475c87f7"
+  "fingerprint": "60e03d91788c822a85deccb2b10bfd797c89d1a7d110907845509bdf835dc215"
 }

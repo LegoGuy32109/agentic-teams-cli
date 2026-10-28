@@ -19,7 +19,7 @@ Never hand-edit the manifest to hide a conflict.
 4. Get approval for the release commit, tag, and push.
 5. Commit the export, create `vMAJOR.MINOR.PATCH`, and push the branch and tag atomically.
 
-The tag workflow verifies the tag matches both version files, runs tests and typechecking, builds four binaries, and publishes checksums.
+The tag workflow verifies the tag matches both version files, runs tests and typechecking, cross-builds four binaries on Linux, and publishes checksums.
 It also attaches the upstream manifest and installer scripts.
 Release notes come from GitHub. Review them before announcing the release.
 The workflow needs repository Contents write permission only for publication.
@@ -29,4 +29,7 @@ Upstream builds carry the `source` marker and refuse binary replacement by the p
 Update checks never require Teams credentials.
 
 The checksum file and binaries come from the same GitHub release. Checksums detect corruption but do not provide independent publisher verification.
-Native CI smoke checks exercise startup. Human browser sign-in and screenshot checks remain separate.
+Native CI smoke checks exercise startup on Linux, macOS, and Windows. The release workflow smoke-tests its Linux binary.
+Release builds use Bun cross-compilation to avoid waiting for platform runner capacity.
+The Release workflow can also rebuild an existing tag through its manual tag input.
+Human browser sign-in and screenshot checks remain separate.
