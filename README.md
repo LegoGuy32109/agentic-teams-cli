@@ -18,7 +18,7 @@ The executable is `teams-cli`. Teams writes preview by default. Posting requires
 
 <p align="center">
   <img src="docs/images/styled-message.png" alt="A Teams message with green and blue status badges, a colored results table, and a highlighted scope note." width="445">
-  <br><sub>Sent from the CLI. Rendered in Teams, dark theme. Demo data.</sub>
+  <br><sub>Sent from the CLI</sub>
 </p>
 
 ```sh
@@ -32,9 +32,8 @@ teams-cli send "Engineering/General" "Ready for review" --format=rich --allow-wr
 | --- | --- | --- | --- |
 | Chats, channels, threads, search, and unread messages | Colors, badges, tables, code, images, and files | Inspect the destination and message before posting | `teams-cli update` installs a verified release |
 
-> **Before you install:** this independent tool uses internal Teams web endpoints with a dedicated browser session.
+> **Before you install:** This independent tool uses internal Teams web endpoints with a dedicated browser session.
 > Microsoft changes can break it. Tenant policies and sign-in requirements still apply.
-> Work and school accounts are the intended audience. Personal accounts are unverified.
 
 ## Install
 
@@ -110,7 +109,7 @@ teams-cli send me --format=rich '[badge:green]PASSED[/] Unit tests passed. [oran
 
 <p align="center">
   <img src="docs/images/code-message.png" alt="Teams renders CLI commands as highlighted shell blocks, with a purple badge and an inline command below." width="610">
-  <br><sub>Shell highlighting and inline code in Teams, dark theme. Long lines scroll horizontally.</sub>
+  <br><sub>Shell highlighting and inline code in Teams</sub>
 </p>
 
 Fenced blocks with a language label become highlighted code blocks.
@@ -136,7 +135,7 @@ Built-in templates include progress, incidents, PR reviews, meeting recaps, poll
 
 <p align="center">
   <img src="docs/images/cards-overview.png" alt="A progress card with three colored completion bars above a PR review card with change counts, review checks, and a limitation." width="516">
-  <br><sub>Progress and review cards in the private Workflows chat. Teams, dark theme. Demo data.</sub>
+  <br><sub>Progress and review cards in the private Workflows chat</sub>
 </p>
 
 **Progress:** completion bars and status badges make each workstream visible.
@@ -153,7 +152,7 @@ Supply your own Adaptive Card JSON when a template needs a different layout.
 
 <p align="center">
   <img src="docs/images/review-card.png" alt="The review card with its changed-files section expanded and the overflow menu showing View diff and Open the pipeline run." width="454">
-  <br><sub>An expandable file summary and supporting links. Teams, dark theme. Demo data.</sub>
+  <br><sub>An expandable file summary and supporting links</sub>
 </p>
 
 </details>
@@ -304,7 +303,7 @@ teams-cli help --json
 | `config file-access [link\|people\|private\|default]` | Show or set who can open a file sent to a chat. Default link. |
 | `config file-role [edit\|view\|default]` | Show or set what members can do with a chat file. Default edit. |
 | `config skin-tone [light\|medium-light\|medium\|medium-dark\|dark\|none]` | Show or set the skin tone for emoji that take one. |
-| `update [--check] [--force] [--json]` | Check or install a public GitHub release. --check prints versions as JSON and writes nothing. --force permits a downgrade. --json prints the result as JSON. Downloads verify SHA256SUMS before replacement. Work-portal builds remain managed by apps/wp build teams-cli. |
+| `update [--check] [--force] [--json]` | Check or install a public GitHub release. --check prints versions as JSON and writes nothing. --force permits a downgrade. --json prints the result as JSON. Downloads verify SHA256SUMS before replacement. Source builds must be rebuilt from their source checkout. |
 | `version \| --version` | Print the installed version. |
 | `help [command] [--json] \| <command> --help [--json]` | Show this summary, or one command's help. help writing shows advice for messages that need a reply. --json prints the command list for programs. |
 <!-- commands:end -->

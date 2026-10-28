@@ -22,7 +22,7 @@ jobs:
           - os: ubuntu-latest
             target: bun-linux-x64
             artifact: teams-cli-linux-x64
-          - os: macos-latest
+          - os: macos-15
             target: bun-darwin-arm64
             artifact: teams-cli-darwin-arm64
           - os: macos-15-intel

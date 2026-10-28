@@ -67,7 +67,7 @@ export async function update(opts: { check: boolean; force: boolean; json: boole
     distribution: DISTRIBUTION, version: VERSION, ...injected,
   };
   if (!opts.check) {
-    if (runtime.distribution !== "github") throw new Error("This build is managed by work-portal. Run: apps/wp build teams-cli. Use update --check to inspect public releases.");
+    if (runtime.distribution !== "github") throw new Error("This build is managed by its source checkout. Rebuild it with that checkout's build command. Use update --check to inspect public releases.");
     if (/^bun(?:\.exe)?$/i.test(basename(runtime.executable))) throw new Error("Run update from an installed compiled teams-cli binary, not bun run.");
   }
   const request = async (url: string) => {

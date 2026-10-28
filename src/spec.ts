@@ -262,7 +262,7 @@ export const COMMANDS: CommandSpec[] = [
   },
   {
     key: "update", section: "setup", flags: ["check", "force", "json"], profile: false,
-    entries: [{ usage: "update [--check] [--force] [--json]", text: "Check or install a public GitHub release. --check prints versions as JSON and writes nothing. --force permits a downgrade. --json prints the result as JSON. Downloads verify SHA256SUMS before replacement. Work-portal builds remain managed by apps/wp build teams-cli." }],
+    entries: [{ usage: "update [--check] [--force] [--json]", text: "Check or install a public GitHub release. --check prints versions as JSON and writes nothing. --force permits a downgrade. --json prints the result as JSON. Downloads verify SHA256SUMS before replacement. Source builds must be rebuilt from their source checkout." }],
     examples: [{ args: ["update", "--check"], note: "Inspect the latest public release without installing it." }],
   },
   {

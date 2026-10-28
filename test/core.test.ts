@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { runCli } from "./cli.ts";
+import pkg from "../package.json";
 
 const COMMANDS = ["auth", "auth status", "logout", "config path", "conversations", "users find", "history", "send", "ledger", "version", "help"];
 
@@ -7,7 +8,7 @@ describe("CLI shell", () => {
   test("version prints the version", async () => {
     const result = await runCli(["version"]);
     expect(result.code).toBe(0);
-    expect(result.stdout.trim()).toBe("1.0.0");
+    expect(result.stdout.trim()).toBe(pkg.version);
   });
 
   test("help lists every 1.0 command", async () => {

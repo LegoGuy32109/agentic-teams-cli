@@ -78,13 +78,13 @@ test("downgrades require force and equal versions download nothing", async () =>
 
 test("local builds refuse replacement before any network request, including force", async () => {
   const f = await fixture();
-  await expect(update({ ...opts, force: true }, { ...f.runtime, distribution: "source" })).rejects.toThrow("managed by work-portal");
+  await expect(update({ ...opts, force: true }, { ...f.runtime, distribution: "source" })).rejects.toThrow("managed by its source checkout");
   expect(f.calls).toHaveLength(0);
   await expect(update(opts, { ...f.runtime, executable: join(f.root, "bun") })).rejects.toThrow("compiled");
   expect(f.calls).toHaveLength(0);
   const cli = await runCli(["update"]);
   expect(cli.code).toBe(1);
-  expect(cli.stderr).toContain(DISTRIBUTION === "source" ? "managed by work-portal" : "compiled");
+  expect(cli.stderr).toContain(DISTRIBUTION === "source" ? "managed by its source checkout" : "compiled");
 });
 
 test("platform mapping and checksums reject ambiguous input", () => {
