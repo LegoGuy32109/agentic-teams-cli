@@ -2,6 +2,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import {
   dateRange, fileNames, fileQuery, fileSearchBody, hitMarkers, messageQuery, normalizeFile, normalizeHit, resolveSender, search, searchBody,
 } from "../src/commands/search.ts";
+import teamsMe from "./fixtures/teams-me.json";
+import searchV2 from "./fixtures/search-v2.json";
 import { refreshConversations } from "../src/conversations.ts";
 import { seedProfile, installFakeTeams, resetLocalState, type FakeRequest, type Reply } from "./fake-teams.ts";
 
@@ -333,5 +335,127 @@ describe("file search", () => {
     await expect(search("x", { type: "pdf" })).rejects.toThrow("--type works only with --files");
     await expect(search("", { files: true })).rejects.toThrow("--from, or --type");
     expect(fake!.requests).toHaveLength(0);
+  });
+});
+
+describe("search with surrounding messages", () => {
+  const path = `/api/chatsvc/amer/v1/users/ME/conversations/${CHAT}/messages`;
+  const raw = (id: string) => ({ id, messagetype: "RichText/Html", content: `<p>neighbor ${id}</p>`, imdisplayname: "Pat Example", from: "8:orgid:33333333-3333-3333-3333-333333333333", properties: {} });
+
+  test("overlapping matches share one history read and produce chronological unique context", async () => {
+    serve({
+      [SEARCH]: messageReply([source("1791990000002"), source("1791990000003")]),
+      [`GET ${path}`]: { status: 200, json: { messages: [4, 3, 2, 1, 0].map(n => raw(`179199000000${n}`)) } },
+    });
+    await search("neighbor", { context: 1, json: true });
+    const result = JSON.parse(lines[0]!);
+    expect(result.messages).toHaveLength(2);
+    expect(result.context).toHaveLength(1);
+    expect(result.context[0].messages.map((m: any) => [m.ts, m.match])).toEqual([
+      ["1791990000001", false], ["1791990000002", true], ["1791990000003", true], ["1791990000004", false],
+    ]);
+    expect(result.context[0].missing_refs).toEqual([]);
+    expect(fake!.find("GET", path)).toHaveLength(1);
+    expect(fake!.requests.filter(r => r.method !== "GET").map(r => r.path)).toEqual(["/searchservice/api/v2/query"]);
+  });
+
+  test("context pages once for several anchors, deduplicates page overlap, and stops after enough neighbors", async () => {
+    let page = 0;
+    serve({
+      [SEARCH]: messageReply([source("1791990000004"), source("1791990000002")]),
+      [`GET ${path}`]: () => ({ status: 200, json: {
+        messages: (++page === 1 ? [5, 4, 3] : [3, 2, 1]).map(n => raw(`179199000000${n}`)),
+        _metadata: { backwardLink: `https://teams.cloud.microsoft${path}?page=${page + 1}` },
+      } }),
+    });
+    await search("neighbor", { context: 1, json: true });
+    const group = JSON.parse(lines[0]!).context[0];
+    expect(group.messages.map((m: any) => m.ts)).toEqual([1, 2, 3, 4, 5].map(n => `179199000000${n}`));
+    expect(group.capped).toBe(false);
+    expect(group.missing_refs).toEqual([]);
+    expect(fake!.find("GET", path)).toHaveLength(2);
+  });
+
+  test("a scoped direct message prints the person's name without a chat title", async () => {
+    serve({
+      [USERS]: { status: 200, json: searchV2 },
+      [ME]: { status: 200, json: teamsMe },
+      [SEARCH]: messageReply([source("1791990000002", { ClientThreadId: "19:one@unq.gbl.spaces" })]),
+    });
+    await search("release", { in: "@Alex Doe", json: true });
+    expect(JSON.parse(lines[0]!).messages[0].conversation).toBe("Alex Doe");
+    expect(fake!.requests.filter(r => r.method !== "GET").map(r => r.path)).toEqual(["/api/mt/amer/beta/users/searchV2", "/searchservice/api/v2/query"]);
+  });
+
+  test("channel replies read the reply thread, and keep reusable thread refs", async () => {
+    const threadPath = `/api/chatsvc/amer/v1/users/ME/conversations/${CHANNEL};messageid=1791990000000/messages`;
+    serve({
+      [SEARCH]: messageReply([source("1791990000002", { ClientThreadId: CHANNEL }, { [`${EXT}ParentMessageId`]: "1791990000000" })]),
+      [`GET ${threadPath}`]: { status: 200, json: { messages: [3, 2, 1, 0].map(n => raw(`179199000000${n}`)) } },
+    });
+    await search("neighbor", { context: 1, json: true });
+    const group = JSON.parse(lines[0]!).context[0];
+    expect(group.thread).toBe("1791990000000");
+    expect(group.messages).toHaveLength(3);
+    expect(group.messages[1].id).toBe(`${CHANNEL};messageid=1791990000000#1791990000002`);
+    expect(fake!.find("GET", threadPath)).toHaveLength(1);
+  });
+
+  test("failed context reads preserve the search hits and report the missing refs", async () => {
+    serve({ [SEARCH]: messageReply([source("1791990000002")]), [`GET ${path}`]: { status: 403, json: {} } });
+    await search("neighbor", { context: 1, json: true });
+    const result = JSON.parse(lines[0]!);
+    expect(result.messages[0].ref).toBe(`${CHAT}#1791990000002`);
+    expect(result.context[0].error).toContain("not a member");
+    expect(result.context[0].missing_refs).toEqual([`${CHAT}#1791990000002`]);
+  });
+
+  test("missing anchors never return unrelated neighbors", async () => {
+    serve({ [SEARCH]: messageReply([source("1791990000002")]), [`GET ${path}`]: { status: 200, json: { messages: [raw("1791990000001")] } } });
+    await search("neighbor", { context: 1, json: true });
+    const group = JSON.parse(lines[0]!).context[0];
+    expect(group.messages).toEqual([]);
+    expect(group.missing_refs).toHaveLength(1);
+  });
+
+  test("context scans are capped and report an older missing hit", async () => {
+    serve({
+      [SEARCH]: messageReply([source("1791990000000")]),
+      [`GET ${path}`]: { status: 200, json: { messages: Array.from({ length: 2001 }, (_, n) => raw(String(1791990003000 - n))), _metadata: { backwardLink: `https://teams.cloud.microsoft${path}?page=2` } } },
+    });
+    await search("neighbor", { context: 1, json: true });
+    const group = JSON.parse(lines[0]!).context[0];
+    expect(group.capped).toBe(true);
+    expect(group.messages).toEqual([]);
+    expect(group.missing_refs).toHaveLength(1);
+    expect(fake!.find("GET", path)).toHaveLength(1);
+  });
+
+  test("zero context preserves search-only behavior, and positive context defaults to five hits", async () => {
+    serve({ [SEARCH]: messageReply(Array.from({ length: 8 }, (_, n) => source(`179199000000${n}`))), [`GET ${path}`]: { status: 200, json: { messages: [] } } });
+    await search("neighbor", { context: 0, json: true });
+    expect(JSON.parse(lines.pop()!).messages).toHaveLength(8);
+    expect(fake!.find("GET", path)).toHaveLength(0);
+    await search("neighbor", { context: 1, json: true });
+    expect(JSON.parse(lines.pop()!).messages).toHaveLength(5);
+  });
+
+  test("bad context flags fail before any request", async () => {
+    serve({});
+    for (const context of [-1, 1.5, NaN, 21]) await expect(search("x", { context })).rejects.toThrow("--context");
+    await expect(search("x", { context: 1, count: 26 })).rejects.toThrow("--count");
+    await expect(search("x", { context: 0, files: true })).rejects.toThrow("--context works only");
+    expect(fake!.requests).toHaveLength(0);
+  });
+
+  test("text context marks matches and empty searches explain the result", async () => {
+    serve({ [SEARCH]: messageReply([source("1791990000002")]), [`GET ${path}`]: { status: 200, json: { messages: [raw("1791990000002")] } } });
+    await search("neighbor", { context: 1 });
+    expect(lines.join("\n")).toContain("> [");
+    fake!.uninstall();
+    serve({ [SEARCH]: messageReply([]) });
+    lines = [];
+    await search("nothing", {});
+    expect(lines).toEqual(["No messages found."]);
   });
 });

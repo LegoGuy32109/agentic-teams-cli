@@ -9,6 +9,10 @@ export const MAX_TOP = 1000;
 export const MAX_ALL = 20_000;
 export const DEFAULT_SEARCH_COUNT = 25;
 export const MAX_SEARCH_COUNT = 1000;
+export const DEFAULT_SEARCH_CONTEXT_COUNT = 5;
+export const MAX_SEARCH_CONTEXT_COUNT = 25;
+export const MAX_SEARCH_CONTEXT = 20;
+export const MAX_SEARCH_CONTEXT_SCAN = 2000;
 export const DEFAULT_CONTEXT = 5;
 export const MAX_CONTEXT = 100;
 /** The card router flow refuses a payload larger than this. */

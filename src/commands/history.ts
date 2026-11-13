@@ -18,6 +18,8 @@ export type HistoryOptions = {
   system?: boolean;
   /** Only for `mentions`: keep mentions that are newer than the read position of their conversation. */
   unread?: boolean;
+  /** Internal bounded search expansion. Existing history limits stay unchanged. */
+  aroundMany?: { timestamps: string[]; before: number; after: number; maxMessages: number };
   around?: { ts: string; before: number; after: number };
 };
 
@@ -51,9 +53,9 @@ type ReadMode = { kind: "top"; top: number } | { kind: "after"; afterMs: number 
 
 /**
  * Reads pages backward until the mode is satisfied or the conversation starts. Each page follows the
- * `backwardLink` from the one before, one request at a time. `capped` means the read stopped at MAX_ALL.
+ * `backwardLink` from the one before, one request at a time. `capped` means the read stopped at its message limit (normally MAX_ALL).
  */
-async function readHistory(pathId: string, mode: ReadMode, system: boolean, conversationId: string): Promise<{ raw: any[]; capped: boolean }> {
+async function readHistory(pathId: string, mode: ReadMode, system: boolean, conversationId: string, maxMessages = MAX_ALL): Promise<{ raw: any[]; capped: boolean }> {
   const counting = { conversationId, myMri: "", nameFor: () => undefined, system };
   const raw: any[] = [];
   const seen = new Set<string>();
@@ -79,7 +81,7 @@ async function readHistory(pathId: string, mode: ReadMode, system: boolean, conv
       if (typeof id === "string" && seenMessages.has(id)) continue;
       if (typeof id === "string") seenMessages.add(id);
       raw.push(item);
-      if (raw.length > MAX_ALL) { raw.pop(); return { raw, capped: true }; }
+      if (raw.length > maxMessages) { raw.pop(); return { raw, capped: true }; }
       if (normalizeMessage(item, counting) !== undefined) {
         kept++;
         if (mode.kind === "around" && Number((item as any)?.id) < Number(mode.ts)) before++;
@@ -89,7 +91,7 @@ async function readHistory(pathId: string, mode: ReadMode, system: boolean, conv
     }
     const link = page?._metadata?.backwardLink;
     if (typeof link !== "string" || !link || seen.has(link)) return { raw, capped: false };
-    if (raw.length >= MAX_ALL) return { raw, capped: true };
+    if (raw.length >= maxMessages) return { raw, capped: true };
     if (mode.kind === "top" && kept >= mode.top) return { raw, capped: false };
     if (mode.kind === "after" && oldest <= mode.afterMs) return { raw, capped: false };
     if (mode.kind === "around" && oldest <= Number(mode.ts) && before >= mode.before) return { raw, capped: false };
@@ -112,13 +114,14 @@ export async function loadHistory(input: string, options: HistoryOptions) {
   if (options.unread && conversation.id !== "48:mentions") throw new Error("--unread works only with the mentions stream: teams-cli history mentions --unread.");
   const afterMs = options.afterTs === undefined ? undefined : parseAfterTs(options.afterTs);
   const top = options.top ?? DEFAULT_TOP;
-  const mode: ReadMode = options.around ? { kind: "around", ...options.around } : options.all ? { kind: "all" }
+  const around = options.aroundMany ? { ts: String(Math.min(...options.aroundMany.timestamps.map(Number))), before: options.aroundMany.before, after: options.aroundMany.after } : options.around;
+  const mode: ReadMode = around ? { kind: "around", ...around } : options.all ? { kind: "all" }
     : afterMs !== undefined ? { kind: "after", afterMs }
       : { kind: "top", top };
 
   const pathId = options.thread ? `${conversation.id};messageid=${threadRootId(options.thread, "--thread")}` : conversation.id;
   const system = !!options.system;
-  const { raw, capped } = await readHistory(pathId, mode, system, conversation.id);
+  const { raw, capped } = await readHistory(pathId, mode, system, conversation.id, options.aroundMany?.maxMessages);
   const names = await resolveNames(who.tenantId, raw.flatMap(item => mentionedMris(item)));
   let normalized = sortByTime(raw
     .map(item => normalizeMessage(item, {
@@ -149,7 +152,17 @@ export async function loadHistory(input: string, options: HistoryOptions) {
   }
 
   let messages: NormalizedMessage[];
-  if (mode.kind === "after") messages = normalized.filter(message => Number(message.ts) > mode.afterMs);
+  if (options.aroundMany) {
+    const selected = new Set<string>();
+    for (const ts of options.aroundMany.timestamps) {
+      const index = normalized.findIndex(message => message.ts === ts);
+      // A missing anchor must not acquire unrelated neighbors.
+      if (index < 0) continue;
+      for (const message of normalized.slice(Math.max(0, index - options.aroundMany.before), index + options.aroundMany.after + 1)) selected.add(message.id);
+    }
+    messages = normalized.filter(message => selected.has(message.id));
+  }
+  else if (mode.kind === "after") messages = normalized.filter(message => Number(message.ts) > mode.afterMs);
   else if (mode.kind === "top") messages = normalized.slice(-top);
   else if (mode.kind === "around") messages = [
     ...(mode.before ? normalized.filter(message => Number(message.ts) < Number(mode.ts)).slice(-mode.before) : []),

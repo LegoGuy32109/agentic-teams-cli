@@ -92,6 +92,7 @@ const emoji = value("emoji") as "teams" | "plain" | undefined;
 const html = value("html");
 const threadTs = value("thread-ts");
 const count = value("count");
+const searchContext = value("context");
 const from = value("from");
 const after = value("after");
 const before = value("before");
@@ -272,7 +273,7 @@ async function main() {
   if (command === "auth") return auth();
   if (command === "logout") return logout();
   if (command === "conversations") return conversations(opts.json);
-  if (command === "search") return search(positional.join(" "), { json: opts.json, count: count === undefined ? undefined : Number(count), from, after, before, on, in: inConversation, files: flag("files"), type: fileType });
+  if (command === "search") return search(positional.join(" "), { json: opts.json, count: count === undefined ? undefined : Number(count), context: searchContext === undefined ? undefined : Number(searchContext || NaN), from, after, before, on, in: inConversation, files: flag("files"), type: fileType });
   if (command === "unread") return unread(opts.json, opts.refresh);
   if (command === "context") return context(positional[0]!, { json: opts.json, before: before === undefined ? undefined : Number(before), after: after === undefined ? undefined : Number(after) });
   if (command === "api") return api(positional[0]!, positional[1], opts.json);

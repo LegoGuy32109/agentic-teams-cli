@@ -185,6 +185,18 @@ teams-cli send --help
 teams-cli help writing
 ```
 
+Search a direct message by name and include the surrounding conversation:
+
+```sh
+teams-cli search "release" --in "@Alex Doe" --context 3
+teams-cli search "release" --in alex@example.com --on 2026-10-28 --context 3 --json
+```
+
+`--context 3` includes up to three messages before and after each match. Overlapping windows merge and `>` marks matches.
+With context, search returns five hits by default. Use `--count` for up to 25.
+Channel replies expand within their thread. Neighbors can fall outside the search dates.
+Each conversation or thread scans at most 2,000 messages. Missing matches and read errors appear in the result.
+
 Give your agent this instruction:
 
 > Use `teams-cli` to read recent context before drafting a Teams message.
@@ -248,7 +260,7 @@ teams-cli help --json
 | `history <conversation> [--top=N \| --after-ts=T \| --all] [--system] [--thread ROOTID] [--content] [--json]` | Read messages, oldest first, so the newest is last. Default --top=20, at most 1000. --all reads to the start (capped at 20,000). --system adds calls, recordings, transcripts, and events. --thread ROOTID reads one channel thread. A message with files prints a files: line. Deleted messages are not shown. |
 | `history mentions --unread` | Only mentions newer than the read position of their conversation. |
 | `context <message-ref> [--before=N] [--after=N] [--json]` | Read a message, the messages around it (default 5 on each side, at most 100), and its channel thread. |
-| `search <query> [--in CONVERSATION] [--from PERSON] [--after DATE] [--before DATE] [--on DATE] [--count=N] [--json]` | Search chat and channel messages, as the Messages tab in Teams does. --in takes any conversation form. --from takes an email, or a name that matches one person. DATE is YYYY-MM-DD, a local day. --after DATE keeps messages sent at or after the start of that day. --before DATE keeps messages sent before the start of that day. --on DATE keeps one day. Default 25 hits, at most 1000. A query of filters only is allowed when --from or --in is given. A name for --from that matches nobody or more than one person fails and lists the people. Each hit prints its time, sender, conversation, text, and ref, then markers: [files: names], [image], [mentions you], and `reply in thread <ref>`. Reads pages of 25 and removes duplicate hits. |
+| `search <query> [--in CONVERSATION] [--from PERSON] [--after DATE] [--before DATE] [--on DATE] [--count=N] [--context=N] [--json]` | Search chat and channel messages, as the Messages tab in Teams does. --in takes any conversation form, including "@Alex Doe" or an email for a direct message. --from takes an email, or a name that matches one person. DATE is YYYY-MM-DD, a local day. --after DATE keeps messages sent at or after the start of that day. --before DATE keeps messages sent before the start of that day. --on DATE keeps one day. Default 25 hits, at most 1000. --context=N includes up to N messages before and after each hit (0 to 20). With context, default 5 hits, at most 25. A query of filters only is allowed when --from or --in is given. A name for --from that matches nobody or more than one person fails and lists the people. Each hit prints its time, sender, conversation, text, and ref, then markers: [files: names], [image], [mentions you], and `reply in thread <ref>`. Reads pages of 25 and removes duplicate hits. Context groups overlapping windows and marks matches with >. Channel replies read their thread. Neighboring messages can fall outside the search dates. Each context group scans at most 2000 messages and reports missing hits or read errors. |
 | `search --files [<query>] [--in CHANNEL] [--from PERSON] [--after DATE] [--before DATE] [--on DATE] [--type EXT] [--count=N] [--json]` | Search OneDrive and SharePoint files, as the Files tab in Teams does. --in takes a channel and keeps the files in its files folder; Teams has no file scope for a chat. Dates filter the modified time. --type takes an extension such as pdf, or loop or fluid. Each hit prints the name, the folder or site, the modified time and person, and the link. Save a hit with: files download <link>. A query of filters only is allowed when --from or --type is given. |
 | `unread [--json] [--refresh]` | List unread chats and channels, with unavailable chats separate. --refresh rechecks access without marking read. |
 | `members <conversation> [--json]` | List a conversation's members with name, mail, and role. |

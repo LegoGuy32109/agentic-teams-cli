@@ -76,6 +76,14 @@ describe("help stays in step with the CLI", () => {
 });
 
 describe("help for one command", () => {
+  test("search help explains direct messages and includes a copyable context example", async () => {
+    const result = await runCli(["search", "--help", "--json"]);
+    const help = JSON.parse(result.stdout);
+    expect(help.references.find((ref: any) => ref.name === "<conversation>").text).toContain("@Name");
+    expect(help.commands[0].examples.some((example: any) => example.command.includes('"@Alex Doe" --context 3'))).toBe(true);
+    expect(help.commands[0].flags).toContainEqual({ name: "--context", takes_value: true });
+  });
+
   test("<command> --help prints that command, its references, and runs nothing", async () => {
     const result = await runCli(["send", "--help"]);
     expect(result.code).toBe(0);

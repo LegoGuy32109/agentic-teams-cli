@@ -54,7 +54,8 @@ function renderExamples(commands: CommandSpec[]): string | undefined {
 
 function referencesFor(commands: CommandSpec[]): UsageEntry[] {
   const usages = commands.flatMap(spec => spec.entries.map(entry => entry.usage)).join(" ");
-  return REFERENCES.filter(entry => usages.includes(entry.usage) || (entry.usage === "<message-ref>" && usages.includes("message-id-or-ref")));
+  return REFERENCES.filter(entry => usages.includes(entry.usage) || (entry.usage === "<message-ref>" && usages.includes("message-id-or-ref"))
+    || (entry.usage === "<conversation>" && commands.some(spec => spec.flags.includes("in"))));
 }
 
 export function fullHelp(): string {

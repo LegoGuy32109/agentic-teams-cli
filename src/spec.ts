@@ -1,7 +1,7 @@
 import type { FlagName } from "./flags.ts";
 import {
   DEFAULT_CONTEXT, DEFAULT_SEARCH_COUNT, DEFAULT_TOP, MAX_ALL, MAX_CONTEXT, MAX_DOWNLOAD_BYTES, MAX_FILES, MAX_IMAGE_BYTES, MAX_IMAGES,
-  MAX_CARD_BYTES, MAX_TEAMS_CARD_BYTES, MAX_SEARCH_COUNT, MAX_TOP, MAX_UPLOAD_BYTES, mb,
+  DEFAULT_SEARCH_CONTEXT_COUNT, MAX_SEARCH_CONTEXT_COUNT, MAX_SEARCH_CONTEXT, MAX_SEARCH_CONTEXT_SCAN, MAX_CARD_BYTES, MAX_TEAMS_CARD_BYTES, MAX_SEARCH_COUNT, MAX_TOP, MAX_UPLOAD_BYTES, mb,
 } from "./limits.ts";
 
 /**
@@ -57,12 +57,13 @@ export const COMMANDS: CommandSpec[] = [
     examples: [{ args: ["context", REF, "--before=2", "--after=2"], note: "read around one message" }],
   },
   {
-    key: "search", section: "read", flags: ["json", "count", "from", "after", "before", "on", "in", "files", "type"],
+    key: "search", section: "read", flags: ["json", "count", "context", "from", "after", "before", "on", "in", "files", "type"],
     entries: [
-      { usage: "search <query> [--in CONVERSATION] [--from PERSON] [--after DATE] [--before DATE] [--on DATE] [--count=N] [--json]", text: `Search chat and channel messages, as the Messages tab in Teams does. --in takes any conversation form. --from takes an email, or a name that matches one person. DATE is YYYY-MM-DD, a local day. --after DATE keeps messages sent at or after the start of that day. --before DATE keeps messages sent before the start of that day. --on DATE keeps one day. Default ${DEFAULT_SEARCH_COUNT} hits, at most ${MAX_SEARCH_COUNT}.`, more: "A query of filters only is allowed when --from or --in is given. A name for --from that matches nobody or more than one person fails and lists the people. Each hit prints its time, sender, conversation, text, and ref, then markers: [files: names], [image], [mentions you], and `reply in thread <ref>`. Reads pages of 25 and removes duplicate hits." },
+      { usage: "search <query> [--in CONVERSATION] [--from PERSON] [--after DATE] [--before DATE] [--on DATE] [--count=N] [--context=N] [--json]", text: `Search chat and channel messages, as the Messages tab in Teams does. --in takes any conversation form, including "@Alex Doe" or an email for a direct message. --from takes an email, or a name that matches one person. DATE is YYYY-MM-DD, a local day. --after DATE keeps messages sent at or after the start of that day. --before DATE keeps messages sent before the start of that day. --on DATE keeps one day. Default ${DEFAULT_SEARCH_COUNT} hits, at most ${MAX_SEARCH_COUNT}. --context=N includes up to N messages before and after each hit (0 to ${MAX_SEARCH_CONTEXT}). With context, default ${DEFAULT_SEARCH_CONTEXT_COUNT} hits, at most ${MAX_SEARCH_CONTEXT_COUNT}.`, more: `A query of filters only is allowed when --from or --in is given. A name for --from that matches nobody or more than one person fails and lists the people. Each hit prints its time, sender, conversation, text, and ref, then markers: [files: names], [image], [mentions you], and \`reply in thread <ref>\`. Reads pages of 25 and removes duplicate hits. Context groups overlapping windows and marks matches with >. Channel replies read their thread. Neighboring messages can fall outside the search dates. Each context group scans at most ${MAX_SEARCH_CONTEXT_SCAN} messages and reports missing hits or read errors.` },
       { usage: "search --files [<query>] [--in CHANNEL] [--from PERSON] [--after DATE] [--before DATE] [--on DATE] [--type EXT] [--count=N] [--json]", text: "Search OneDrive and SharePoint files, as the Files tab in Teams does. --in takes a channel and keeps the files in its files folder; Teams has no file scope for a chat. Dates filter the modified time. --type takes an extension such as pdf, or loop or fluid. Each hit prints the name, the folder or site, the modified time and person, and the link. Save a hit with: files download <link>.", more: "A query of filters only is allowed when --from or --type is given." },
     ],
     examples: [
+      { args: ["search", "release", "--in", "@Alex Doe", "--context", "3"], note: "search a direct message and read the surrounding conversation" },
       { args: ["search", "deploy", "--from", "alex@example.com", "--after", "2026-10-01"], note: "search with filters" },
       { args: ["search", "deploy", "--in", CHANNEL, "--on", "2026-10-18"], note: "search one channel on one day" },
       { args: ["search", "--files", "report", "--type", "pdf"], note: "search for PDF files" },

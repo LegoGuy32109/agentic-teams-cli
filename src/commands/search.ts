@@ -1,15 +1,17 @@
-import { DEFAULT_SEARCH_COUNT, MAX_SEARCH_COUNT } from "../limits.ts";
+import { DEFAULT_SEARCH_COUNT, MAX_SEARCH_COUNT, DEFAULT_SEARCH_CONTEXT_COUNT, MAX_SEARCH_CONTEXT_COUNT, MAX_SEARCH_CONTEXT, MAX_SEARCH_CONTEXT_SCAN } from "../limits.ts";
 import { randomUUID } from "node:crypto";
 import { findChannel, loadConversations, labelFor, resolveConversation } from "../conversations.ts";
 import { channelTarget } from "../upload.ts";
 import { formatMessageRef, isChannelId, isConversationId, isEmail } from "../refs.ts";
-import { identity } from "../tokens.ts";
+import { loadHistory } from "./history.ts";
+import type { NormalizedMessage } from "../message.ts";
+import { identity, redact } from "../tokens.ts";
 import { localTimeZone, request } from "../transport.ts";
 import { searchPeople, type User } from "../users.ts";
 
 export type SearchOptions = {
   json?: boolean; count?: number; from?: string; after?: string; before?: string; on?: string;
-  in?: string; files?: boolean; type?: string;
+  in?: string; files?: boolean; type?: string; context?: number;
 };
 
 /** What the query builders take: the resolved parts, not the raw flags. */
@@ -260,8 +262,56 @@ export async function channelScope(input: string): Promise<ChannelAnnotation> {
   return { type: "Channel", threadId: conversation.id, text: "dummyText", groupId: team.groupId, path: `https://${target.host}${target.folder}/`, tenantId: (await identity()).tenantId };
 }
 
+type ContextGroup = {
+  conversation_id: string;
+  conversation?: string;
+  thread?: string;
+  matched_refs: string[];
+  messages: (NormalizedMessage & { match: boolean })[];
+  capped: boolean;
+  missing_refs: string[];
+  error?: string;
+};
+
+/** Read each conversation or reply thread once, then merge overlapping windows. */
+async function expandContext(hits: (Hit & { conversation?: string })[], neighbors: number): Promise<ContextGroup[]> {
+  const groups = new Map<string, ContextGroup>();
+  for (const hit of hits) {
+    if (!hit.conversation_id || !hit.ref) continue;
+    const thread = isChannelId(hit.conversation_id) ? hit.reply_in_thread?.split("#").at(-1) : undefined;
+    const key = `${hit.conversation_id}|${thread ?? ""}`;
+    let group = groups.get(key);
+    if (!group) {
+      group = { conversation_id: hit.conversation_id, conversation: hit.conversation, ...(thread ? { thread } : {}), matched_refs: [], messages: [], capped: false, missing_refs: [] };
+      groups.set(key, group);
+    }
+    group.matched_refs.push(hit.ref);
+  }
+  for (const group of groups.values()) {
+    const timestamps = group.matched_refs.map(ref => ref.split("#").at(-1)!);
+    try {
+      const history = await loadHistory(group.conversation_id, {
+        json: true, content: false, thread: group.thread,
+        aroundMany: { timestamps, before: neighbors, after: neighbors, maxMessages: MAX_SEARCH_CONTEXT_SCAN },
+      });
+      group.capped = history.capped;
+      group.messages = history.messages.map(message => ({ ...message, match: timestamps.includes(message.ts) }));
+      const found = new Set(history.messages.map(message => message.ts));
+      group.missing_refs = group.matched_refs.filter(ref => !found.has(ref.split("#").at(-1)!));
+    } catch (error) {
+      group.error = redact(error instanceof Error ? error.message : String(error));
+      group.missing_refs = [...group.matched_refs];
+    }
+  }
+  return [...groups.values()];
+}
+
 export async function search(text: string, options: SearchOptions): Promise<void> {
-  const count = options.count ?? DEFAULT_SEARCH_COUNT;
+  const neighbors = options.context ?? 0;
+  if (!Number.isInteger(neighbors) || neighbors < 0 || neighbors > MAX_SEARCH_CONTEXT) throw new Error(`--context must be a whole number from 0 to ${MAX_SEARCH_CONTEXT}.`);
+  if (options.files && options.context !== undefined) throw new Error("--context works only with message search. Remove --files or --context.");
+  const count = options.count ?? (neighbors ? DEFAULT_SEARCH_CONTEXT_COUNT : DEFAULT_SEARCH_COUNT);
+  if (neighbors && count > MAX_SEARCH_CONTEXT_COUNT) throw new Error(`With --context, --count must be at most ${MAX_SEARCH_CONTEXT_COUNT}. Narrow the search or remove --context.`);
   if (!Number.isInteger(count) || count < 1 || count > MAX_SEARCH_COUNT) throw new Error(`--count must be a whole number from 1 to ${MAX_SEARCH_COUNT}.`);
   if (options.type && !options.files) throw new Error("--type works only with --files.");
   if (options.files ? !text.trim() && !options.from && !options.type : !text.trim() && !options.from && !options.in) {
@@ -271,11 +321,15 @@ export async function search(text: string, options: SearchOptions): Promise<void
   const parts: QueryParts = { text, after: options.after, before: options.before, on: options.on, type: options.type };
   if (options.from) parts.email = await resolveSender(options.from);
   let channel: ChannelAnnotation | undefined;
+  let scopedConversation: { id: string; label: string } | undefined;
   if (options.in && options.files) {
     channel = await channelScope(options.in);
     parts.folder = channel.path.replace(/\/+$/, "");
   }
-  else if (options.in) parts.thread = (await resolveConversation(options.in)).id;
+  else if (options.in) {
+    scopedConversation = await resolveConversation(options.in);
+    parts.thread = scopedConversation.id;
+  }
   const query = options.files ? fileQuery(parts) : messageQuery(parts);
   const entity = options.files ? "File" : "Message";
   const cache = await loadConversations((await identity()).tenantId);
@@ -312,6 +366,7 @@ export async function search(text: string, options: SearchOptions): Promise<void
   }
   if (options.files) {
     if (options.json) console.log(JSON.stringify({ query, total, more, files: hits }, null, 2));
+    else if (!hits.length) console.log("No files found.");
     else for (const file of hits) {
       console.log(file.name);
       const place = file.folder ?? file.site;
@@ -323,12 +378,27 @@ export async function search(text: string, options: SearchOptions): Promise<void
   }
   const messages = (hits as Hit[]).map(hit => ({
     ...hit,
-    conversation: (hit.conversation_id ? labelFor(cache, hit.conversation_id) : undefined)
+    conversation: (scopedConversation && hit.conversation_id === scopedConversation.id ? scopedConversation.label : undefined)
+      ?? (hit.conversation_id ? labelFor(cache, hit.conversation_id) : undefined)
       ?? (hit.team && hit.channel ? `${hit.team}/${hit.channel}` : undefined) ?? hit.conversation_id,
   }));
-  if (options.json) console.log(JSON.stringify({ query, total, more, messages }, null, 2));
-  else for (const message of messages) {
-    console.log(`[${message.sent_local}] ${message.sender}${message.conversation ? ` in ${message.conversation}` : ""}\n  ${message.text}`);
-    console.log(`  id: ${message.ref ?? "no message ref"}${hitMarkers(message).map(marker => `  ${marker}`).join("")}`);
+  const context = neighbors ? await expandContext(messages, neighbors) : undefined;
+  if (options.json) console.log(JSON.stringify({ query, total, more, messages, ...(context ? { context } : {}) }, null, 2));
+  else {
+    if (!messages.length) console.log("No messages found.");
+    for (const message of messages) {
+      console.log(`[${message.sent_local}] ${message.sender}${message.conversation ? ` in ${message.conversation}` : ""}\n  ${message.text}`);
+      console.log(`  id: ${message.ref ?? "no message ref"}${hitMarkers(message).map(marker => `  ${marker}`).join("")}`);
+    }
+    for (const group of context ?? []) {
+      console.log(`\nContext in ${group.conversation ?? group.conversation_id}${group.thread ? ` (thread ${group.thread})` : ""}:`);
+      for (const message of group.messages) {
+        console.log(`${message.match ? ">" : " "} [${localStamp(message.created)}] ${message.user}\n  ${message.text}`);
+        if (message.files.length) console.log(`  files: ${message.files.map(file => file.name).join(", ")}`);
+      }
+      if (group.capped) console.log(`  Context scan stopped after ${MAX_SEARCH_CONTEXT_SCAN} messages.`);
+      if (group.error) console.log(`  Context unavailable: ${group.error}`);
+      if (group.missing_refs.length) console.log(`  Context missing for: ${group.missing_refs.join(", ")}`);
+    }
   }
 }
